@@ -2,6 +2,7 @@ var admin = require('firebase-admin');
 const http = require('http');
 var serverAccount = require('../../.keys/fctdam-45f92-firebase-adminsdk-t4c1g-e91f1c48fd.json');
 var cron = require('node-cron');
+let dateOffset = (24 * 60 * 60 * 1000) * 14;
 
 admin.initializeApp({
     credential: admin.credential.cert(serverAccount),
@@ -45,30 +46,33 @@ const server = http.createServer(function (request, response) {
 
 var db = admin.database();
 var ref = db.ref();
-ref.on('value', (snapshot) => {
-    //coge todos los hijos
-    let snap = snapshot.val();
-    for (const key in snap) {
-        if (Object.hasOwnProperty.call(snap, key)) {
-            const element = snap[key];
-            //coge todos los valores de los hijos
-            for (const a in element) {
-                if (Object.hasOwnProperty.call(element, a)) {
-                    const b = element[a];
-                    console.log(b);
-                    if (Date.parse(b)) {
-                        let valDate = Date.parse(b);
-                        let nowDate = Date.now();
+
+// para ejecucion diaria la string es '00 00 * * *'
+cron.schedule('* * * * *', () => {
+    ref.once('value', (snapshot) => {
+        //coge todos los hijos
+        let snap = snapshot.val();
+        for (const keyMacRoot in snap) {
+            if (Object.hasOwnProperty.call(snap, keyMacRoot)) {
+                const childrenMacRoot = snap[keyMacRoot];
+                //coge todos los valores de los hijos
+                for (const keyMacChild in childrenMacRoot) {
+                    if (Object.hasOwnProperty.call(childrenMacRoot, keyMacChild)) {
+                        const valueMacChildren = childrenMacRoot[keyMacChild];
+                        console.log(valueMacChildren);
+                        if (Date.parse(valueMacChildren)) {
+                            var valDate = new Date(valueMacChildren);
+                            var nowDate = new Date();
+                            nowDate.setTime(nowDate.getTime() - dateOffset);
+                            if (valDate <= nowDate) {
+                                ref.child(keyMacRoot).child(keyMacChild).remove();
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-})
-// para ejecucion diaria la string es '00 00 * * *'
-cron.schedule('* * * * *', () => {
-    console.log("Corriendo");
-
+    })
 })
 
 const port = 3000;
