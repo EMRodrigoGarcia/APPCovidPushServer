@@ -1,7 +1,7 @@
 var admin = require('firebase-admin');
 const http = require('http');
 var serverAccount = require('../../.keys/fctdam-45f92-firebase-adminsdk-t4c1g-e91f1c48fd.json');
-var gd = require('querystring');
+var cron = require('node-cron');
 
 admin.initializeApp({
     credential: admin.credential.cert(serverAccount),
@@ -42,6 +42,34 @@ const server = http.createServer(function (request, response) {
     }
 
 });
+
+var db = admin.database();
+var ref = db.ref();
+ref.on('value', (snapshot) => {
+    //coge todos los hijos
+    let snap = snapshot.val();
+    for (const key in snap) {
+        if (Object.hasOwnProperty.call(snap, key)) {
+            const element = snap[key];
+            //coge todos los valores de los hijos
+            for (const a in element) {
+                if (Object.hasOwnProperty.call(element, a)) {
+                    const b = element[a];
+                    console.log(b);
+                    if (Date.parse(b)) {
+                        let valDate = Date.parse(b);
+                        let nowDate = Date.now();
+                    }
+                }
+            }
+        }
+    }
+})
+// para ejecucion diaria la string es '00 00 * * *'
+cron.schedule('* * * * *', () => {
+    console.log("Corriendo");
+
+})
 
 const port = 3000;
 

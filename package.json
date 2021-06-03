@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/FabadaLitoral/APPCovidPushServer#readme",
   "dependencies": {
-    "firebase-admin": "^9.9.0"
+    "firebase-admin": "^9.9.0",
+    "node-cron": "^3.0.0"
   }
 }
